@@ -1,0 +1,42 @@
+---
+- hosts: localhost
+  gather_facts: false
+  become: yes
+  vars_files:
+    - tomcat_vars.yml
+  tasks:
+    - name: install java
+      yum:
+        name: java-1.8.0-openjdk
+        state: present
+    - name: download tomcat url
+      get_url:
+        url: "{{tomcat_url}}"
+        dest: /opt/{{tomcat_package}}.tar.gz
+    - name: untar tomcat folder
+      unarchive:
+        src: /opt/{{tomcat_package}}.tar.gz
+        dest: /opt
+        mode: 0755
+    - name: creating tomcat user
+      user:
+        name: tomcat
+    - name: giving executable permissions
+      file:
+        path: /opt/{{tomcat_package}}
+        mode: 0755
+        owner: tomcat
+        group: tomcat
+        recurse: true 
+    - name: creating link for tomcatup
+      file:
+        src: /opt/{{tomcat_package}}/bin/{{ item.tomcat_script }}
+        dest: /usr/local/bin/{{ item.tomcat_exe }}
+        state: link
+      loop:
+        - { tomcat_script: startup.sh,tomcat_exe: tomcatup }
+        - { tomcat_script: shutdown.sh,tomcat_exe: tomcatdown }
+    - name: starting tomcat server
+      command: ./tomcatup
+      args:
+        chdir: /usr/local/bin
