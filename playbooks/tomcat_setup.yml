@@ -3,7 +3,7 @@
   become: yes
   gather_facts: no
   vars_files:
-    - /root/playbooks/tomcat_vars.yml
+    - tomcat_vars.yml
   tasks:
     - name: installing java
       yum:
@@ -39,7 +39,7 @@
       notify: start tomcat server
     - name: changing port number for tomcat server
       copy:
-        src: server.xml
+        src: server.xml.j2
         dest: /opt/tomcat/conf/server.xml
       notify: restart tomcat server
   handlers:
